@@ -149,9 +149,14 @@ def solve(QCIS:str):
     qbits_connective_dict = qbits_connective_map(circuit_to_dag(quamtum_cir))
     my_map,score = find_best_mapping(logical_connectivity=qbits_connective_dict,logical_qubits_usage=summary_dict,physical_qubits=qubit_properties,coupling_map=coupling_map)
     print(f'初始化布局生效|score={score}|map={my_map}')
+    my_map = process_dict(my_map)
+    my_map_dict = {k: v for k, v in my_map}
+    layout = Layout()
+    for k,v in my_map_dict.items():
+        layout.add(quamtum_cir.qubits[k],v)
     basic_set = ['ry','rx','sx','cz','sxdg','cx','measure']
     cmap = CouplingMap(couplinglist=coupling_map)
     backend =GenericBackendV2(num_qubits=66,coupling_map=cmap)
-    new_circ_lv0 = transpile(circuits=quamtum_cir,backend=backend,layout_method='sabre',optimization_level=2)
+    new_circ_lv0 = transpile(circuits=quamtum_cir,backend=backend,layout_method='sabre',optimization_level=2,initial_layout=layout)
     qcis = QasmToQcis().convert_to_qcis(qasm2.dumps(new_circ_lv0))
     return new_circ_lv0, qcis
